@@ -329,6 +329,7 @@ program price_proof_test_1.aleo {
        bull_bets_win ? Mapping::get_or_use(bull_bets, claimant, 0u64)
                      : Mapping::get_or_use(bear_bets, claimant, 0u64);
 
+// This didn't work.  Compiler limitation.  There is a plan to fix it.
 //    let claimant_winning_bet: u64 = 0u64;
 //    if bull_bets_win {
 //      claimant_winning_bet = Mapping::get_or_use(bull_bets, claimant, 0u64);
@@ -338,8 +339,8 @@ program price_proof_test_1.aleo {
 
     assert(claimant_winning_bet > 0u64);
 
-    // MAYBE PROBLEM: credits.aleo doesn't have a function to get the public balance for a program.
-    // Can we just refer to the mapping?
+    // Note, credits.aleo doesn't have a function to get the public balance for a program.
+    // However, we can refer to the external mapping directly.
     let total_pool: u64 = Mapping::get(credits.aleo/account, self.address);
 
     // To make sure we get the most accurate payout, let's do the calculation
