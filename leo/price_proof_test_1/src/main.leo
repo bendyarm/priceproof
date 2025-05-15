@@ -6,7 +6,7 @@ program price_proof_test_1.aleo {
   // --------------------------------
   // Global constants
 
-  const BET_MASTER: address = aleo13mt57u8txw8skhnhup59nscrrzm759lmy0wft3gwucqrfacvvqyqvj8zw4;
+  const BET_MASTER: address = aleo1utnfugwpu6ac8z0dp90mlulvrgf768984huy7gwfcr0676hfmv9qwxkl9n;
 
   // For now we limit the number of unique bettors (addresses) in either the bull or bear
   // mapping to 100.
