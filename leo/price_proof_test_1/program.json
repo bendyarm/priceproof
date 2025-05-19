@@ -7,7 +7,7 @@
     {
       "name": "credits.aleo",
       "location": "network",
-      "network": "testnet",
+      "network": "mainnet",
       "path": null
     }
   ]

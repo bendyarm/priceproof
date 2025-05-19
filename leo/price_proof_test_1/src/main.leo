@@ -1,16 +1,44 @@
 import credits.aleo;
 
+// Some comments on this program's limitations.
+// * This is not like an order book that requires counterparties.
+//   Instead, there is a pot of bets that is proportionally allocated
+//   to the winners.
+// * There is not yet any use of private data, due to time constraints.
+//   A program like this should really keep the bettors' addresses private.
+// * There is no tracking/enforcement of timing, like when bets are closed
+//   and when the oracle value is submitted.  An external UI that
+//   handles the timing details is needed.
+// * Once Aleo has an oracle solutions, this program should use it
+//   to get the ALEO-USD price at the closing time.
+// * Each betting pool will need a separate deployment of the program:
+//   * The BET_MASTER address should be changed to the deployer's address
+//     before deployment.
+//   * the program name must be changed
+//   Having a reset transition might enable reuse of the program by the same
+//   bet master for another betting pool.
+// * These transitions have not been sufficiently tested due to lack of time:
+//   close_betting, receive_oracle_price, claim_bet.
+// * See the comments for other limitations and suggestions.
+
 // A simple bet program.
 program price_proof_test_1.aleo {
 
   // --------------------------------
   // Global constants
 
-  const BET_MASTER: address = aleo1utnfugwpu6ac8z0dp90mlulvrgf768984huy7gwfcr0676hfmv9qwxkl9n;
+  // !! WARNING: CHANGE THIS BEFORE DEPLOYMENT !!
+  const BET_MASTER: address = aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px;
+  // The purpose of this constant is to make sure only the deployer can execute the
+  // bet management transitions.
+  // If we had a `self.deployer` special variable, we could instead do something like
+  //   inline BET_MASTER () -> address { return self.deployer; }
+  // and use BET_MASTER() instead of BET_MASTER, which I think is a little more clear than
+  // replacing all instances of BET_MASTER by self.deployer.
 
   // For now we limit the number of unique bettors (addresses) in either the bull or bear
   // mapping to 100.
-  // Use u16 in case we want it to be larger than 255.
+  // Using u16 in case we want it to be larger than 255.
   const BET_POOL_SIZE: u16 = 100u16;
 
   // --------------------------------
@@ -51,7 +79,6 @@ program price_proof_test_1.aleo {
   //  for claiming, after which the BET_MASTER would get the bet.)
 
   // Also keep track of the bettors.
-  // (Might not be necessary given we are not doing automatic payouts.)
   mapping id_to_bull_bettor: u16 => address;
   mapping next_bull_bettors_index: bool => u16;
   mapping id_to_bear_bettor: u16 => address;
@@ -223,9 +250,18 @@ program price_proof_test_1.aleo {
 
   // ----------------
 
-  // Note, it is hard to do automatic payouts, since we can only call external transitions
-  // from a transition, and credits.aleo/transfer_public is an external transition.
-  // Therefore we will give the bettor the responsibility of claiming their winnings.
+  // Note, it is hard and expensive to do automatic payouts.
+  // It is hard since the mappings have the information but we can't access
+  // mappings from the transition (only from the async function that finalizes).
+  // However, calls to credits.aleo to tranfer fundsion must be done from
+  // the transition; they can't be done from the async function that finalizes.
+  // So the values have to be precomputed and passed in to the transition.
+  // If there are many mapping items that need to be accessed, this becomes
+  // unwieldy due to needing multiple transactions, as well as being expensive.
+  // It is expensive to do automatic payouts since the cost of doing the
+  // transfers is pushed onto the bet master.  But it seems fine to
+  // give the bettor the responsibility of claiming their winnings
+  // since that is common in many betting contexts.
 
   // ========
   // WARNING: We don't have a way to get a value from a mapping and then to pass
